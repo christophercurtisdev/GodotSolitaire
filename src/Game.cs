@@ -40,7 +40,6 @@ public partial class Game : Control {
     foreach (var spot in _stackSpots.Select((value, index) => new { value, index })) {
       for (var i = 0; i < spot.index + 1; i++) {
         Card nextCard = _deck.DrawNextCard(i == spot.index);
-        nextCard.SetDraggable(true);
         spot.value.AppendToStack(nextCard);
       }
     }

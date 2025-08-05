@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using Godot;
 
 public partial class StackSpot : Node2D {
+
+  public static readonly int StackItemGap = 20;
   private List<Card> _cards = [];
   public bool Empty = true;
 
@@ -10,14 +12,14 @@ public partial class StackSpot : Node2D {
     ZIndex = 1;
   }
 
-  public void AppendToStack(Card newCardHead) {
-    var childCard = newCardHead.GetChildCard();
+  public void AppendToStack(Card newTailCard) {
+    var childCard = newTailCard.GetChildCard();
     if (childCard is not null) {
       AppendToStack(childCard);
     }
     else {
-      _cards.Add(newCardHead);
-      newCardHead.TweenPosition(Position + new Vector2(0, (_cards.Count - 1) * 20));
+      _cards.Add(newTailCard);
+      newTailCard.TweenPosition(Position + new Vector2(0, (_cards.Count - 1) * StackItemGap));
       Empty = false;
     }
   }

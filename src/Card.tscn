@@ -1,4 +1,4 @@
-[gd_scene load_steps=62 format=3 uid="uid://ca01jkpgro61s"]
+[gd_scene load_steps=63 format=3 uid="uid://ca01jkpgro61s"]
 
 [ext_resource type="Texture2D" uid="uid://bvttvynrjn5ad" path="res://assets/Card_Back-88x124.png" id="1_i8o5v"]
 [ext_resource type="Script" uid="uid://b1o3l8i0bui1q" path="res://src/Card.cs" id="1_t65bg"]
@@ -387,7 +387,10 @@ animations = [{
 }]
 
 [sub_resource type="RectangleShape2D" id="RectangleShape2D_vk8kj"]
-size = Vector2(76, 112)
+size = Vector2(88, 124)
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_34dnb"]
+size = Vector2(88, 1)
 
 [node name="Card" type="Node2D"]
 z_index = 5
@@ -400,10 +403,19 @@ metadata/objectType = "Card"
 sprite_frames = SubResource("SpriteFrames_8a0w8")
 
 [node name="CardCollider" type="Area2D" parent="."]
-metadata/draggable = true
+metadata/draggable = "CardCollider"
 
-[node name="CollisionShape2D" type="CollisionShape2D" parent="CardCollider"]
+[node name="CardColliderShape" type="CollisionShape2D" parent="CardCollider"]
 shape = SubResource("RectangleShape2D_vk8kj")
+
+[node name="HighPriorityCardCollider" type="Area2D" parent="."]
+metadata/collisionPriority = 1
+metadata/draggable = "CardCollider"
+
+[node name="HighPriorityCardColliderShape" type="CollisionShape2D" parent="HighPriorityCardCollider"]
+position = Vector2(0, -61.5)
+shape = SubResource("RectangleShape2D_34dnb")
+debug_color = Color(1, 0, 0, 0.419608)
 
 [connection signal="area_entered" from="CardCollider" to="." method="OnOtherCollisionEnter"]
 [connection signal="area_exited" from="CardCollider" to="." method="OnOtherCollisionExit"]

@@ -19,11 +19,17 @@ public partial class Card : Node2D, IDraggable {
   private static readonly string _objectTypeMeta = "objectType";
   private static readonly int _cardBackFrame = 52;
 
+  private static readonly string _draggableCollider = "CardCollider";
+
   public override void _Ready() {
     base._Ready();
     SetMeta("objectType", "Card");
+    // Set collider draggable values
+    GetNode("CardCollider").SetMeta(Player.DraggableMeta, GetNode(_draggableCollider).GetIndex().ToString());
+    GetNode("HighPriorityCardCollider").SetMeta(Player.DraggableMeta, GetNode(_draggableCollider).GetIndex().ToString());
     _cardFace = (AnimatedSprite2D)GetNode("CardFace");
     HideFace();
+    SetHighPriorityColliderHeight();
     ZIndex = 2;
   }
 
@@ -90,12 +96,14 @@ public partial class Card : Node2D, IDraggable {
 
   public Card? GetChildCard() => _childCard;
 
-  public void SetDraggable(bool draggable) {
+  public void SetChildCard(Card childCard) => _childCard = childCard;
+
+  public void SetDraggable(string draggable) {
     GetNode("CardCollider").SetMeta(Player.DraggableMeta, draggable);
   }
 
-  public bool GetDraggable() {
-    return (bool)GetNode("CardCollider").GetMeta(Player.DraggableMeta);
+  public string GetDraggable() {
+    return (string)GetNode("CardCollider").GetMeta(Player.DraggableMeta);
   }
 
   public int debug() {
@@ -114,6 +122,11 @@ public partial class Card : Node2D, IDraggable {
   public void TweenPosition(Vector2 newPosition) {
     var tween = GetTree().CreateTween();
     tween.TweenProperty(this, "position", newPosition, 0.2f);
+  }
+
+  public void SetHighPriority() {
+    var cardColliderShape = ((CollisionShape2D)GetNode("CardCollider/CardColliderShape")).Shape;
+    SetHighPriorityColliderHeight();
   }
 
   private void ShowFace() {
@@ -135,6 +148,13 @@ public partial class Card : Node2D, IDraggable {
       TweenPosition(otherParent.Position);
       otherParent.Empty = false;
     }
+  }
+
+  private void SetHighPriorityColliderHeight(int? height = null) {
+    CollisionShape2D hpColliderShape = (CollisionShape2D)GetNode("HighPriorityCardCollider/HighPriorityCardColliderShape");
+    RectangleShape2D hpColliderShapeRectangle = (RectangleShape2D)hpColliderShape.Shape;
+    hpColliderShape.Position = new Vector2(0, (height ?? StackSpot.StackItemGap / 2) - 62);
+    hpColliderShapeRectangle.Size = new Vector2(hpColliderShapeRectangle.Size.X, height ?? StackSpot.StackItemGap);
   }
 
   private void OnOtherCollisionEnter(Area2D other) { }

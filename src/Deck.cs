@@ -37,7 +37,7 @@ public partial class Deck : Node2D {
         card.SetSuit(suit);
         card.SetPip(pip);
         card.Position = Position;
-        card.SetDraggable(false);
+        card.SetDraggable("CardCollider");
         _cards.Add(card);
       }
     }
@@ -60,11 +60,9 @@ public partial class Deck : Node2D {
     foreach (Card card in _cards) {
       if (!card.DrawnFromDeck) {
         card.DrawnFromDeck = true;
-        GD.Print(card.debug());
         if (flip) {
           card.FlipCard();
         }
-        GD.Print(card.debug());
         return card;
       }
     }
