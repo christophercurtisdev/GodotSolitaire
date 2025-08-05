@@ -1,0 +1,99 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using CardGame;
+using Godot;
+
+public partial class Player : Node2D {
+
+  private bool _clicking;
+  private Node2D? _heldItem;
+  private int _previouslyHeldItemZIndex;
+  private Tween _playerTween;
+  private List<Node2D> _hoveredDraggables = [];
+  private PackedScene _playerInteractionClass = GD.Load<PackedScene>("res://src/PlayerInteraction.tscn");
+
+
+  private static readonly Dictionary<ulong, Area2D> _draggableCollisions = [];
+  private static readonly Dictionary<ulong, Area2D> _undraggableCollisions = [];
+  private static readonly Dictionary<ulong, Area2D> _totalCollisions = [];
+  private static readonly float _hoverScaleMultiplier = 1.2f;
+  private static readonly float _hoverScaleBounce = 0.9f;
+  public static readonly string DraggableMeta = "draggable";
+
+  public override void _Ready() {
+    _playerTween = GetTree().CreateTween();
+  }
+
+  public override void _Process(double delta) {
+    HandleInput();
+    ScaleDraggables();
+    if (_clicking && _heldItem != null) {
+      var heldX = (int)((int)(_heldItem.Position.X - Position.X) * delta * 5);
+      var heldY = (int)((int)(_heldItem.Position.Y - Position.Y) * delta * 5);
+      _heldItem.Position -= new Vector2(heldX, heldY);
+    }
+  }
+
+  private void ScaleDraggables() {
+    foreach (var draggable in _draggableCollisions) {
+      Node2D parent = (Node2D)draggable.Value.GetParent();
+      float mappedScaleMultiplier = TestMap(parent.Position.DistanceTo(Position), _hoverScaleMultiplier, 1, 0, 60);
+      parent.Scale = new Vector2(mappedScaleMultiplier, mappedScaleMultiplier);
+    }
+  }
+
+  private float TestMap(float value, float nMin, float nMax, float oMin, float oMax) {
+    float nUpperBound = nMax - nMin;
+    float oUpperBound = oMax - oMin;
+    float nValue = ((nUpperBound / oUpperBound) * value) + nMin;
+    return nValue >= 1 ? nValue : _hoverScaleBounce;
+  }
+
+  private void OnOtherCollisionEnter(Area2D other) {
+    if ((bool)other.GetMeta(DraggableMeta)) {
+      _draggableCollisions.Add(other.GetInstanceId(), other);
+    }
+    else {
+      _undraggableCollisions.Add(other.GetInstanceId(), other);
+    }
+    _totalCollisions.Add(other.GetInstanceId(), other);
+  }
+
+  private void OnOtherCollisionExit(Area2D other) {
+    if ((bool)other.GetMeta(DraggableMeta)) {
+      _draggableCollisions.Remove(other.GetInstanceId());
+      var tween = GetTree().CreateTween();
+      tween.TweenProperty(other.GetParent(), "scale", new Vector2(1, 1), 0.2f);
+    }
+    else {
+      _undraggableCollisions.Remove(other.GetInstanceId());
+    }
+    _totalCollisions.Remove(other.GetInstanceId());
+  }
+
+  private void HandleInput() {
+    Position = GetViewport().GetMousePosition();
+    if (Input.IsActionJustPressed("LClick")) {
+      _clicking = true;
+      _heldItem = _draggableCollisions.Count > 0 ? (Node2D)_draggableCollisions.Values.First().GetParent() : null;
+      if (_heldItem is not null) {
+        _previouslyHeldItemZIndex = _heldItem.ZIndex;
+        _heldItem.ZIndex = 100;
+      }
+    }
+    else if (Input.IsActionJustReleased("LClick")) {
+      if (_heldItem is not null) {
+        var playerInteraction = (AnimatedSprite2D)_playerInteractionClass.Instantiate();
+        playerInteraction.Position = Position;
+        Game.GetTable().AddChild(playerInteraction);
+        playerInteraction.Play();
+        var heldDraggableItem = _heldItem as IDraggable;
+        heldDraggableItem?.TryDragTo(_totalCollisions);
+      }
+      _clicking = false;
+      _heldItem.ZIndex = _previouslyHeldItemZIndex;
+      _heldItem = null;
+    }
+  }
+}

@@ -1,0 +1,53 @@
+[gd_scene load_steps=4 format=3 uid="uid://cywpu6lxdjhuu"]
+
+[ext_resource type="Script" uid="uid://dde4yxdal1fip" path="res://src/Game.cs" id="1_17mmo"]
+[ext_resource type="PackedScene" uid="uid://cc8tu6cx0mai5" path="res://src/Player.tscn" id="2_kqvf5"]
+[ext_resource type="PackedScene" uid="uid://dtx4ubcrtnb1c" path="res://src/Deck.tscn" id="4_7omc5"]
+
+[node name="Game" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+script = ExtResource("1_17mmo")
+
+[node name="Camera2D" type="Camera2D" parent="."]
+anchor_mode = 0
+drag_left_margin = 0.0
+drag_top_margin = 0.0
+drag_right_margin = 0.0
+drag_bottom_margin = 0.0
+
+[node name="Table" type="Control" parent="."]
+unique_name_in_owner = true
+anchors_preset = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 1
+
+[node name="ColorRect" type="ColorRect" parent="Table"]
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 1
+color = Color(0.305882, 0.619608, 0.580392, 1)
+
+[node name="Player" parent="Table" instance=ExtResource("2_kqvf5")]
+
+[node name="Deck" parent="Table" instance=ExtResource("4_7omc5")]
+unique_name_in_owner = true
+position = Vector2(104, 578)
+metadata/objectType = "Deck"
+
+[node name="Button" type="Button" parent="."]
+layout_mode = 0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = 241.0
+offset_bottom = 40.0
+text = "Setup Game"
+
+[connection signal="pressed" from="Button" to="." method="OnSetupGameClick"]

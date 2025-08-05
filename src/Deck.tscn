@@ -1,0 +1,46 @@
+[gd_scene load_steps=7 format=3 uid="uid://dtx4ubcrtnb1c"]
+
+[ext_resource type="Script" uid="uid://26ltb0xmmat2" path="res://src/Deck.cs" id="1_l88c8"]
+[ext_resource type="Texture2D" uid="uid://bvttvynrjn5ad" path="res://assets/Card_Back-88x124.png" id="1_ugorc"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_l88c8"]
+atlas = ExtResource("1_ugorc")
+region = Rect2(0, 0, 88, 124)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_5xg05"]
+atlas = ExtResource("1_ugorc")
+region = Rect2(88, 0, 88, 124)
+
+[sub_resource type="SpriteFrames" id="SpriteFrames_4lbac"]
+animations = [{
+"frames": [{
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_l88c8")
+}, {
+"duration": 1.0,
+"texture": SubResource("AtlasTexture_5xg05")
+}],
+"loop": true,
+"name": &"default",
+"speed": 5.0
+}]
+
+[sub_resource type="RectangleShape2D" id="RectangleShape2D_5xg05"]
+size = Vector2(80, 116)
+
+[node name="Deck" type="Node2D"]
+z_index = 10
+script = ExtResource("1_l88c8")
+
+[node name="AnimatedSprite2D" type="AnimatedSprite2D" parent="."]
+sprite_frames = SubResource("SpriteFrames_4lbac")
+frame = 1
+
+[node name="Area2D" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Area2D"]
+shape = SubResource("RectangleShape2D_5xg05")
+metadata/objectType = "Deck"
+
+[connection signal="mouse_entered" from="Area2D" to="." method="OnMouseCollisionEnter"]
+[connection signal="mouse_exited" from="Area2D" to="." method="OnMouseCollisionExit"]
