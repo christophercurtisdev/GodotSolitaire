@@ -97,7 +97,7 @@ public partial class Card : Node2D, IDraggable {
 
   public void TryHold(Node2D destinationNode, double delta) {
     var heldX = (int)((Position.X - destinationNode.Position.X) * delta * 10);
-    var heldY = (int)((Position.Y - destinationNode.Position.Y) * delta * 10);
+    var heldY = (int)((Position.Y - destinationNode.Position.Y - 50) * delta * 10);
     Position -= new Vector2(heldX, heldY);
     _childCard?.TryHold(this, delta);
   }
