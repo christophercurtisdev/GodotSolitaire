@@ -27,9 +27,8 @@ public partial class Player : Node2D {
     HandleInput();
     ScaleDraggables();
     if (_clicking && _heldItem != null) {
-      var heldX = (int)((int)(_heldItem.Position.X - Position.X) * delta * 5);
-      var heldY = (int)((int)(_heldItem.Position.Y - Position.Y) * delta * 5);
-      _heldItem.Position -= new Vector2(heldX, heldY);
+      var heldItem = _heldItem as IDraggable;
+      heldItem?.TryHold(this, delta);
     }
   }
 
