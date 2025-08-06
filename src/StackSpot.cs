@@ -15,17 +15,16 @@ public partial class StackSpot : Node2D {
 
   public void AppendToStack(Card newTailCard) {
     var childCard = newTailCard.GetChildCard();
+    if (_cards.Count > 0) {
+      var lastTail = _cards.Last();
+      lastTail.SetChildCard(newTailCard);
+    }
+    newTailCard.SetHighPriority();
+    _cards.Add(newTailCard);
+    newTailCard.TweenPosition(Position + new Vector2(0, (_cards.Count - 1) * StackItemGap));
+    Empty = false;
     if (childCard is not null) {
       AppendToStack(childCard);
-    }
-    else {
-      if (_cards.Count > 0) {
-        var lastTail = _cards.Last();
-        lastTail.SetChildCard(newTailCard);
-      }
-      _cards.Add(newTailCard);
-      newTailCard.TweenPosition(Position + new Vector2(0, (_cards.Count - 1) * StackItemGap));
-      Empty = false;
     }
   }
 }

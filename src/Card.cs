@@ -10,6 +10,7 @@ public partial class Card : Node2D, IDraggable {
   public bool DrawnFromDeck;
   private AnimatedSprite2D _cardFace = new();
   private Card? _childCard;
+  private StackSpot? _stackSpot;
 
   // Maybe move these to global vars or something
   private static readonly string _pipMeta = "pip";
@@ -29,7 +30,7 @@ public partial class Card : Node2D, IDraggable {
     GetNode("HighPriorityCardCollider").SetMeta(Player.DraggableMeta, GetNode(_draggableCollider).GetIndex().ToString());
     _cardFace = (AnimatedSprite2D)GetNode("CardFace");
     HideFace();
-    SetHighPriorityColliderHeight();
+    SetHighPriorityColliderHeight(StackSpot.StackItemGap);
     ZIndex = 2;
   }
 
@@ -103,7 +104,10 @@ public partial class Card : Node2D, IDraggable {
 
   public Card? GetChildCard() => _childCard;
 
-  public void SetChildCard(Card childCard) => _childCard = childCard;
+  public void SetChildCard(Card childCard) {
+    _childCard = childCard;
+    SetLowPriority();
+  }
 
   public void SetDraggable(string draggable) {
     GetNode("CardCollider").SetMeta(Player.DraggableMeta, draggable);
@@ -132,8 +136,13 @@ public partial class Card : Node2D, IDraggable {
   }
 
   public void SetHighPriority() {
-    var cardColliderShape = ((CollisionShape2D)GetNode("CardCollider/CardColliderShape")).Shape;
-    SetHighPriorityColliderHeight();
+    Area2D cardCollider = (Area2D)GetNode("CardCollider");
+    cardCollider.SetMeta("collisionPriority", 1);
+  }
+
+  public void SetLowPriority() {
+    Area2D cardCollider = (Area2D)GetNode("CardCollider");
+    cardCollider.SetMeta("collisionPriority", 0);
   }
 
   private void ShowFace() {
@@ -145,10 +154,6 @@ public partial class Card : Node2D, IDraggable {
     _cardFace.Frame = 52;
   }
 
-  private void OnPlayerCollisionEnter() {
-    _hovered = true;
-  }
-
   private void OnStackSpotCollisionEnter(StackSpot otherParent) {
     // Check stack spot can accept the given card
     if (otherParent.Empty) {
@@ -157,18 +162,22 @@ public partial class Card : Node2D, IDraggable {
     }
   }
 
-  private void SetHighPriorityColliderHeight(int? height = null) {
+  public void SetHighPriorityColliderHeight(int height) {
     CollisionShape2D hpColliderShape = (CollisionShape2D)GetNode("HighPriorityCardCollider/HighPriorityCardColliderShape");
     RectangleShape2D hpColliderShapeRectangle = (RectangleShape2D)hpColliderShape.Shape;
-    hpColliderShape.Position = new Vector2(0, (height ?? StackSpot.StackItemGap / 2) - 62);
-    hpColliderShapeRectangle.Size = new Vector2(hpColliderShapeRectangle.Size.X, height ?? StackSpot.StackItemGap);
+    hpColliderShape.Position = new Vector2(0, (height / 2) - 62);
+    GD.Print(hpColliderShape.GetInstanceId() + ": " + hpColliderShapeRectangle.Size);
+    hpColliderShapeRectangle.Size = new Vector2(hpColliderShapeRectangle.Size.X, height);
+    GD.Print(hpColliderShape.GetInstanceId() + ": " + hpColliderShapeRectangle.Size);
   }
 
   private void OnOtherCollisionEnter(Area2D other) { }
 
   private void OnOtherCollisionExit(Area2D other) { }
 
-  private void OnPlayerCollisionExit() => _hovered = false;
+  private void OnPlayerCollisionEnter() { }
+
+  private void OnPlayerCollisionExit() { }
 
   private void OnCardCollisionExit() { }
 

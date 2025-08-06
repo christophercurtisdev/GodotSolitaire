@@ -409,7 +409,7 @@ metadata/draggable = "CardCollider"
 shape = SubResource("RectangleShape2D_vk8kj")
 
 [node name="HighPriorityCardCollider" type="Area2D" parent="."]
-metadata/collisionPriority = 1
+metadata/collisionPriority = 2
 metadata/draggable = "CardCollider"
 
 [node name="HighPriorityCardColliderShape" type="CollisionShape2D" parent="HighPriorityCardCollider"]
