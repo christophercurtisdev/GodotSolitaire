@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection.Metadata.Ecma335;
 using CardGame;
 using Godot;
@@ -11,6 +12,7 @@ public partial class Card : Node2D, IDraggable {
   private AnimatedSprite2D _cardFace = new();
   private Card? _childCard;
   private StackSpot? _stackSpot;
+  private Vector2? _previousPosition;
 
   // Maybe move these to global vars or something
   private static readonly string _pipMeta = "pip";
@@ -32,10 +34,6 @@ public partial class Card : Node2D, IDraggable {
     HideFace();
     SetHighPriorityColliderHeight(StackSpot.StackItemGap);
     ZIndex = 2;
-  }
-
-  public override void _Process(double delta) {
-    base._Process(delta);
   }
 
   public string GetCardName() {
@@ -75,38 +73,65 @@ public partial class Card : Node2D, IDraggable {
   public int GetPip() => (int)GetMeta(_pipMeta);
   public string GetSuit() => (string)GetMeta(_suitMeta);
 
-  public void TryDragTo(Dictionary<ulong, Area2D> playerCollisions) {
+  public bool TryDragTo(Dictionary<ulong, Area2D> playerCollisions) {
+    bool success = false;
     foreach (var entry in playerCollisions) {
       Node2D other = entry.Value;
       var otherParent = (Node2D)other.GetParent();
-      switch ((string)otherParent.GetMeta(_objectTypeMeta)) {
-        case "Player":
-          OnPlayerCollisionEnter();
-          break;
-        case "Card":
-          OnCardCollisionEnter();
-          break;
-        case "StackSpot":
-          OnStackSpotCollisionEnter((StackSpot)otherParent);
-          break;
-        default:
-          break;
+      if ((string)otherParent.GetMeta(_objectTypeMeta) == "StackSpot") {
+        return OnStackSpotCollisionEnter((StackSpot)otherParent);
       }
+      // else if ((string)otherParent.GetMeta(_objectTypeMeta) == "Card") {
+      //   var otherCard = (Card)otherParent;
+      //   if (otherCard.GetStackSpot() is not null) {
+      //     success = OnStackSpotCollisionEnter(otherCard.GetStackSpot() ?? new StackSpot());
+      //   }
+      // }
     }
+    return success;
   }
 
-  public void TryHold(Node2D destinationNode, double delta) {
-    var heldX = (int)((Position.X - destinationNode.Position.X) * delta * 10);
-    var heldY = (int)((Position.Y - destinationNode.Position.Y - 50) * delta * 10);
+  public void TryHold(Node2D destinationNode, double? delta = null) {
+    var heldX = (int)((Position.X - destinationNode.Position.X) * (delta ?? 0.1) * 10);
+    var heldY = (int)((Position.Y - destinationNode.Position.Y - 50) * (delta ?? 0.1) * 10);
     Position -= new Vector2(heldX, heldY);
     _childCard?.TryHold(this, delta);
   }
 
+  public void PingBack() {
+    TweenPosition(_previousPosition ?? new Vector2(0, 0));
+    _previousPosition = null;
+    _childCard?.PingBack();
+  }
+
+  public void SetPreviousPosition(Vector2 previousPosition) {
+    _previousPosition = previousPosition;
+    _childCard?.SetPreviousPosition(_childCard.Position);
+  }
+
+  public List<Card> GetChildrenCards(bool includeSelf = false) {
+    List<Card> children = [];
+    children = children.Concat(_childCard?.GetChildrenCards(true) ?? []).ToList();
+    if (includeSelf) {
+      children.Add(this);
+    }
+    return children;
+  }
+
+  private List<ulong> GetColliderIDs() {
+    List<ulong> ids = [];
+    ids.Add(GetNode("CardCollider").GetInstanceId());
+    ids.Add(GetNode("HighPriorityCardCollider").GetInstanceId());
+    return ids;
+  }
+
   public Card? GetChildCard() => _childCard;
 
-  public void SetChildCard(Card childCard) {
+  public void SetChildCard(Card? childCard = null) {
     _childCard = childCard;
-    SetLowPriority();
+    if (childCard is not null) {
+      SetLowPriority();
+    }
   }
 
   public void SetDraggable(string draggable) {
@@ -154,34 +179,42 @@ public partial class Card : Node2D, IDraggable {
     _cardFace.Frame = 52;
   }
 
-  private void OnStackSpotCollisionEnter(StackSpot otherParent) {
+  private bool OnStackSpotCollisionEnter(StackSpot otherParent) {
     // Check stack spot can accept the given card
-    if (otherParent.Empty) {
-      TweenPosition(otherParent.Position);
-      otherParent.Empty = false;
+    if (otherParent.Empty && otherParent != _stackSpot) {
+      otherParent.AppendToStack(this);
+      return true;
     }
+    return false;
+  }
+
+  public void SetStackSpot(StackSpot newStackSpot) {
+    _stackSpot?.RemoveFromStack(this);
+    _stackSpot = newStackSpot;
+  }
+
+  public StackSpot? GetStackSpot() {
+    return _stackSpot;
   }
 
   public void SetHighPriorityColliderHeight(int height) {
     CollisionShape2D hpColliderShape = (CollisionShape2D)GetNode("HighPriorityCardCollider/HighPriorityCardColliderShape");
     RectangleShape2D hpColliderShapeRectangle = (RectangleShape2D)hpColliderShape.Shape;
     hpColliderShape.Position = new Vector2(0, (height / 2) - 62);
-    GD.Print(hpColliderShape.GetInstanceId() + ": " + hpColliderShapeRectangle.Size);
     hpColliderShapeRectangle.Size = new Vector2(hpColliderShapeRectangle.Size.X, height);
-    GD.Print(hpColliderShape.GetInstanceId() + ": " + hpColliderShapeRectangle.Size);
   }
 
   private void OnOtherCollisionEnter(Area2D other) { }
 
   private void OnOtherCollisionExit(Area2D other) { }
 
-  private void OnPlayerCollisionEnter() { }
+  private bool OnPlayerCollisionEnter() {
+    return false;
+  }
 
   private void OnPlayerCollisionExit() { }
 
   private void OnCardCollisionExit() { }
 
   private void OnStackSpotCollisionExit(Node2D otherParent) { }
-
-  private void OnCardCollisionEnter() { }
 }
