@@ -20,11 +20,19 @@ public partial class StackSpot : Node2D {
       lastTail.SetChildCard(newTailCard);
     }
     newTailCard.SetHighPriority();
+    newTailCard.SetStackSpot(this);
     _cards.Add(newTailCard);
     newTailCard.TweenPosition(Position + new Vector2(0, (_cards.Count - 1) * StackItemGap));
-    Empty = false;
+    newTailCard.ZIndex = _cards.Count + 1;
+    // Empty = false;
     if (childCard is not null) {
       AppendToStack(childCard);
     }
+  }
+
+  public void RemoveFromStack(Card card) {
+    var parentCard = _cards.Find(potentialParent => potentialParent.GetChildCard() == card);
+    parentCard?.SetChildCard();
+    _cards.Remove(card);
   }
 }

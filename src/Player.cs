@@ -9,7 +9,6 @@ public partial class Player : Node2D {
   private bool _clicking;
   private Node2D? _heldItem;
   private int _previouslyHeldItemZIndex = 1;
-  private Tween _playerTween;
   private PackedScene _playerInteractionClass = GD.Load<PackedScene>("res://src/PlayerInteraction.tscn");
 
 
@@ -18,10 +17,6 @@ public partial class Player : Node2D {
   private static readonly Dictionary<ulong, Area2D> _totalCollisions = [];
   private static readonly float _hoverScaleMultiplier = 1.2f;
   public static readonly string DraggableMeta = "draggable";
-
-  public override void _Ready() {
-    _playerTween = GetTree().CreateTween();
-  }
 
   public override void _Process(double delta) {
     HandleInput();
@@ -37,13 +32,13 @@ public partial class Player : Node2D {
       Node2D parent = (Node2D)draggable.Value.GetParent();
       Node2D draggableCollider = (Node2D)parent.GetChild((int)draggable.Value.GetMeta(DraggableMeta, 0));
       if (draggableCollider.GetInstanceId() == draggable.Value.GetInstanceId()) {
-        float mappedScaleMultiplier = TestMap(parent.Position.DistanceTo(Position), _hoverScaleMultiplier, 1, 0, 60);
+        float mappedScaleMultiplier = MapRange(parent.Position.DistanceTo(Position), _hoverScaleMultiplier, 1, 0, 60);
         parent.Scale = new Vector2(mappedScaleMultiplier, mappedScaleMultiplier);
       }
     }
   }
 
-  private float TestMap(float value, float nMin, float nMax, float oMin, float oMax) {
+  private float MapRange(float value, float nMin, float nMax, float oMin, float oMax) {
     float nUpperBound = nMax - nMin;
     float oUpperBound = oMax - oMin;
     float nValue = ((nUpperBound / oUpperBound) * value) + nMin;
@@ -85,6 +80,9 @@ public partial class Player : Node2D {
       if (_heldItem is not null) {
         _previouslyHeldItemZIndex = _heldItem.ZIndex;
         _heldItem.ZIndex = 100;
+        var heldItem = _heldItem as IDraggable;
+        heldItem?.SetPreviousPosition(_heldItem.Position);
+        GD.Print(heldItem);
       }
     }
     else if (Input.IsActionJustReleased("LClick")) {
@@ -93,11 +91,16 @@ public partial class Player : Node2D {
         playerInteraction.Position = Position;
         Game.GetTable().AddChild(playerInteraction);
         playerInteraction.Play();
+        _heldItem.ZIndex = _previouslyHeldItemZIndex;
         var heldDraggableItem = _heldItem as IDraggable;
-        heldDraggableItem?.TryDragTo(_totalCollisions);
+        _totalCollisions.Remove(_heldItem.GetInstanceId());
+        var successfullyMoved = heldDraggableItem?.TryDragTo(_totalCollisions) ?? true;
+        if (!successfullyMoved) {
+          var heldItem = _heldItem as IDraggable;
+          heldItem?.PingBack();
+        }
       }
       _clicking = false;
-      _heldItem.ZIndex = _previouslyHeldItemZIndex;
       _heldItem = null;
     }
   }
