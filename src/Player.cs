@@ -31,7 +31,8 @@ public partial class Player : Node2D {
     foreach (var draggable in _draggableCollisions) {
       Node2D parent = (Node2D)draggable.Value.GetParent();
       Node2D draggableCollider = (Node2D)parent.GetChild((int)draggable.Value.GetMeta(DraggableMeta, 0));
-      if (draggableCollider.GetInstanceId() == draggable.Value.GetInstanceId()) {
+      var draggableParent = parent as IDraggable;
+      if (draggableCollider.GetInstanceId() == draggable.Value.GetInstanceId() && (draggableParent?.CanHold(this) ?? false)) {
         float mappedScaleMultiplier = MapRange(parent.Position.DistanceTo(Position), _hoverScaleMultiplier, 1, 0, 60);
         parent.Scale = new Vector2(mappedScaleMultiplier, mappedScaleMultiplier);
       }
