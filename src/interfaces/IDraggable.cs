@@ -6,8 +6,8 @@ using Godot;
 
 interface IDraggable {
   public bool TryDragTo(Dictionary<ulong, Area2D> playerCollisions);
-
-  public void TryHold(Node2D destinationNode, double? delta = null);
+  public bool CanHold(Node2D destinationNode);
+  public void Hold(Node2D destinationNode, double? delta = null);
   public void PingBack();
   public void SetPreviousPosition(Vector2 previousPosition);
 }

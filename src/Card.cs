@@ -97,11 +97,17 @@ public partial class Card : Node2D, IDraggable {
     return success;
   }
 
-  public void TryHold(Node2D destinationNode, double? delta = null) {
-    var heldX = (int)((Position.X - destinationNode.Position.X) * (delta ?? 0.1) * 10);
-    var heldY = (int)((Position.Y - destinationNode.Position.Y - 50) * (delta ?? 0.1) * 10);
-    Position -= new Vector2(heldX, heldY);
-    _childCard?.TryHold(this, delta);
+  public bool CanHold(Node2D destinationNode) {
+    return _flipped;
+  }
+
+  public void Hold(Node2D destinationNode, double? delta = null) {
+    if (CanHold(destinationNode)) {
+      var heldX = (int)((Position.X - destinationNode.Position.X) * (delta ?? 0.1) * 10);
+      var heldY = (int)((Position.Y - destinationNode.Position.Y - 50) * (delta ?? 0.1) * 10);
+      Position -= new Vector2(heldX, heldY);
+      _childCard?.Hold(this, delta);
+    }
   }
 
   public void PingBack() {
@@ -137,6 +143,9 @@ public partial class Card : Node2D, IDraggable {
     _childCard = childCard;
     if (childCard is not null) {
       SetLowPriority();
+    }
+    else {
+      SetHighPriority();
     }
   }
 

@@ -21,6 +21,11 @@ public partial class Game : Control {
     _deck = (Deck)GetNode("%Deck");
   }
 
+  public override void _Process(double delta) {
+    var fpsCounter = (Label)GetNode("FPSLabel");
+    fpsCounter.Text = "FPS: " + Engine.GetFramesPerSecond();
+  }
+
   public static Node GetTable() => _table;
 
   private void PutCardsOnTable() {

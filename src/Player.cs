@@ -23,7 +23,7 @@ public partial class Player : Node2D {
     ScaleDraggables();
     if (_clicking && _heldItem != null) {
       var heldItem = _heldItem as IDraggable;
-      heldItem?.TryHold(this, delta);
+      heldItem?.Hold(this, delta);
     }
   }
 
@@ -76,13 +76,15 @@ public partial class Player : Node2D {
     if (Input.IsActionJustPressed("LClick")) {
       _clicking = true;
       List<Area2D> collisionPriorityOrderedList = _draggableCollisions.Values.OrderBy(value => (int)value.GetMeta("collisionPriority", 0)).ToList();
-      _heldItem = collisionPriorityOrderedList.Count > 0 ? (Node2D)collisionPriorityOrderedList.Last().GetParent() : null;
-      if (_heldItem is not null) {
-        _previouslyHeldItemZIndex = _heldItem.ZIndex;
-        _heldItem.ZIndex = 100;
-        var heldItem = _heldItem as IDraggable;
-        heldItem?.SetPreviousPosition(_heldItem.Position);
-        GD.Print(heldItem);
+      Node2D? newItem = collisionPriorityOrderedList.Count > 0 ? (Node2D)collisionPriorityOrderedList.Last().GetParent() : null;
+      if (newItem is not null) {
+        var heldItem = newItem as IDraggable;
+        if (heldItem?.CanHold(this) ?? false) {
+          _heldItem = newItem;
+          _previouslyHeldItemZIndex = _heldItem.ZIndex;
+          _heldItem.ZIndex = 100;
+          heldItem?.SetPreviousPosition(_heldItem.Position);
+        }
       }
     }
     else if (Input.IsActionJustReleased("LClick")) {
