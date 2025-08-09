@@ -78,15 +78,18 @@ public partial class Card : Node2D, IDraggable {
     foreach (var entry in playerCollisions) {
       Node2D other = entry.Value;
       var otherParent = (Node2D)other.GetParent();
-      if ((string)otherParent.GetMeta(_objectTypeMeta) == "StackSpot") {
-        return OnStackSpotCollisionEnter((StackSpot)otherParent);
+      switch ((string)otherParent.GetMeta(_objectTypeMeta)) {
+        case "StackSpot":
+          return OnStackSpotCollisionEnter((StackSpot)otherParent);
+        case "Card":
+          success = OnCardCollisionEnter((Card)otherParent);
+          if (success) {
+            return success;
+          }
+          break;
+        default:
+          break;
       }
-      // else if ((string)otherParent.GetMeta(_objectTypeMeta) == "Card") {
-      //   var otherCard = (Card)otherParent;
-      //   if (otherCard.GetStackSpot() is not null) {
-      //     success = OnStackSpotCollisionEnter(otherCard.GetStackSpot() ?? new StackSpot());
-      //   }
-      // }
     }
     return success;
   }
@@ -202,6 +205,14 @@ public partial class Card : Node2D, IDraggable {
     RectangleShape2D hpColliderShapeRectangle = (RectangleShape2D)hpColliderShape.Shape;
     hpColliderShape.Position = new Vector2(0, (height / 2) - 62);
     hpColliderShapeRectangle.Size = new Vector2(hpColliderShapeRectangle.Size.X, height);
+  }
+
+  public bool OnCardCollisionEnter(Card otherParent) {
+    StackSpot? newStackSpot = otherParent.GetStackSpot();
+    if (newStackSpot is not null && newStackSpot != _stackSpot) {
+      return OnStackSpotCollisionEnter(newStackSpot);
+    }
+    return false;
   }
 
   private void OnOtherCollisionEnter(Area2D other) { }
