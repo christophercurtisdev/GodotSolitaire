@@ -14,6 +14,8 @@ public partial class Card : Node2D, IDraggable {
   private StackSpot? _stackSpot;
   private Vector2? _previousPosition;
 
+  private bool _flipped;
+
   // Maybe move these to global vars or something
   private static readonly string _pipMeta = "pip";
   private static readonly string _suitMeta = "suit";
@@ -72,6 +74,7 @@ public partial class Card : Node2D, IDraggable {
 
   public int GetPip() => (int)GetMeta(_pipMeta);
   public string GetSuit() => (string)GetMeta(_suitMeta);
+  public bool GetFlipped() => _flipped;
 
   public bool TryDragTo(Dictionary<ulong, Area2D> playerCollisions) {
     bool success = false;
@@ -149,12 +152,17 @@ public partial class Card : Node2D, IDraggable {
     return _cardFace.Frame;
   }
 
-  public void FlipCard() {
-    if (_cardFace.Frame == _cardBackFrame) {
+  public void FlipCard(bool? value = null) {
+    if (value is not null) {
+      _flipped = (bool)value;
+    }
+    if (_flipped) {
       ShowFace();
+      _flipped = true;
     }
     else {
       HideFace();
+      _flipped = false;
     }
   }
 

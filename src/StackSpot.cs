@@ -33,6 +33,9 @@ public partial class StackSpot : Node2D {
   public void RemoveFromStack(Card card) {
     var parentCard = _cards.Find(potentialParent => potentialParent.GetChildCard() == card);
     parentCard?.SetChildCard();
+    if (parentCard is not null) {
+      parentCard?.FlipCard(true);
+    }
     _cards.Remove(card);
   }
 }

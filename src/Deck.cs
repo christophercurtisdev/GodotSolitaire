@@ -60,9 +60,7 @@ public partial class Deck : Node2D {
     foreach (Card card in _cards) {
       if (!card.DrawnFromDeck) {
         card.DrawnFromDeck = true;
-        if (flip) {
-          card.FlipCard();
-        }
+        card.FlipCard(flip);
         return card;
       }
     }
