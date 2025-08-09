@@ -48,15 +48,25 @@ public partial class Deck : Node2D {
   private List<Card> DrawThreeCards() {
     List<Card> drawnCards = [];
     for (var i = 0; i < 3; i++) {
-      Card card = DrawNextCard(true);
-      drawnCards.Add(card);
-      Vector2 destination = card.Position + new Vector2((i * 20) + 100, 0);
-      card.TweenPosition(destination);
+      Card? card = DrawNextCard(true);
+      if (card is not null) {
+        drawnCards.Add(card);
+        Vector2 destination = card.Position + new Vector2((i * 120) + 100, 0);
+        card.TweenPosition(destination);
+      }
+    }
+    if (drawnCards.Count == 0) {
+      List<Card> cardsWithoutASpot = _cards.Where(card => card.GetStackSpot() is null).ToList();
+      foreach (Card card in cardsWithoutASpot) {
+        card.DrawnFromDeck = false;
+        card.FlipCard(false);
+        card.TweenPosition(Position);
+      }
     }
     return drawnCards;
   }
 
-  public Card DrawNextCard(bool flip = false) {
+  public Card? DrawNextCard(bool flip = false) {
     foreach (Card card in _cards) {
       if (!card.DrawnFromDeck) {
         card.DrawnFromDeck = true;
@@ -64,6 +74,6 @@ public partial class Deck : Node2D {
         return card;
       }
     }
-    return new Card();
+    return null;
   }
 }
