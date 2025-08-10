@@ -1,8 +1,26 @@
-[gd_scene load_steps=4 format=3 uid="uid://cywpu6lxdjhuu"]
+[gd_scene load_steps=6 format=3 uid="uid://cywpu6lxdjhuu"]
 
 [ext_resource type="Script" uid="uid://dde4yxdal1fip" path="res://src/Game.cs" id="1_17mmo"]
 [ext_resource type="PackedScene" uid="uid://cc8tu6cx0mai5" path="res://src/Player.tscn" id="2_kqvf5"]
 [ext_resource type="PackedScene" uid="uid://dtx4ubcrtnb1c" path="res://src/Deck.tscn" id="4_7omc5"]
+[ext_resource type="Shader" uid="uid://bk50r0lyln7lb" path="res://src/CRT.gdshader" id="4_km1yn"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_eu8jo"]
+shader = ExtResource("4_km1yn")
+shader_parameter/resolution = Vector2(320, 180)
+shader_parameter/scan_line_amount = 1.0
+shader_parameter/warp_amount = 0.1
+shader_parameter/noise_amount = 0.03
+shader_parameter/interference_amount = 0.2
+shader_parameter/grille_amount = 0.1
+shader_parameter/grille_size = 1.0
+shader_parameter/vignette_amount = 0.6
+shader_parameter/vignette_intensity = 0.4
+shader_parameter/aberation_amount = 0.5
+shader_parameter/roll_line_amount = 0.3
+shader_parameter/roll_speed = 1.0
+shader_parameter/scan_line_strength = -8.0
+shader_parameter/pixel_strength = -2.0
 
 [node name="Game" type="Control"]
 layout_mode = 3
@@ -70,6 +88,15 @@ offset_top = 53.0
 offset_right = 156.0
 offset_bottom = 97.6667
 text = "Time Left"
+
+[node name="Shader" type="ColorRect" parent="."]
+z_index = 14
+material = SubResource("ShaderMaterial_eu8jo")
+layout_mode = 0
+offset_right = 1280.0
+offset_bottom = 720.0
+mouse_filter = 2
+color = Color(1, 1, 1, 0.470588)
 
 [connection signal="pressed" from="Button" to="." method="OnSetupGameClick"]
 [connection signal="timeout" from="GameTimer" to="." method="OnGameTimerTimeout"]
