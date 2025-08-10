@@ -13,8 +13,8 @@ public partial class Card : Node2D, IDraggable {
   private Card? _childCard;
   private StackSpot? _stackSpot;
   private Vector2? _previousPosition;
-
   private bool _flipped;
+  private bool _draggable;
 
   // Maybe move these to global vars or something
   private static readonly string _pipMeta = "pip";
@@ -35,6 +35,7 @@ public partial class Card : Node2D, IDraggable {
     _cardFace = (AnimatedSprite2D)GetNode("CardFace");
     HideFace();
     SetHighPriorityColliderHeight(StackSpot.StackItemGap);
+    _draggable = true;
     ZIndex = 2;
   }
 
@@ -70,6 +71,7 @@ public partial class Card : Node2D, IDraggable {
     }
   }
 
+  public void SetDraggable(bool draggable) => _draggable = draggable;
   public void SetPip(int pip) => SetMeta(_pipMeta, pip);
 
   public int GetPip() => (int)GetMeta(_pipMeta);
@@ -97,9 +99,7 @@ public partial class Card : Node2D, IDraggable {
     return success;
   }
 
-  public bool CanHold(Node2D destinationNode) {
-    return _flipped;
-  }
+  public bool CanHold(Node2D destinationNode) => _flipped && _draggable;
 
   public void Hold(Node2D destinationNode, double? delta = null) {
     if (CanHold(destinationNode)) {
@@ -111,7 +111,7 @@ public partial class Card : Node2D, IDraggable {
   }
 
   public void PingBack() {
-    TweenPosition(_previousPosition ?? new Vector2(0, 0));
+    TweenPosition(_previousPosition ?? Position);
     _previousPosition = null;
     _childCard?.PingBack();
   }

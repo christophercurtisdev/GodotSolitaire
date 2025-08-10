@@ -50,6 +50,11 @@ offset_right = 1228.0
 offset_bottom = 84.0
 text = "Setup Game"
 
+[node name="GameTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+wait_time = 10.0
+one_shot = true
+
 [node name="FPSLabel" type="Label" parent="."]
 layout_mode = 0
 offset_left = 12.0
@@ -58,4 +63,13 @@ offset_right = 67.0
 offset_bottom = 60.6667
 text = "FPS"
 
+[node name="GameTimerLabel" type="Label" parent="."]
+layout_mode = 0
+offset_left = 11.0
+offset_top = 53.0
+offset_right = 156.0
+offset_bottom = 97.6667
+text = "Time Left"
+
 [connection signal="pressed" from="Button" to="." method="OnSetupGameClick"]
+[connection signal="timeout" from="GameTimer" to="." method="OnGameTimerTimeout"]

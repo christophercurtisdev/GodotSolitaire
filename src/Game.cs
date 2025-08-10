@@ -10,6 +10,7 @@ public partial class Game : Control {
 
   private static Node _table;
   private static Deck _deck;
+  private static Timer _gameTimer;
 
   private int _stackSpotsCount = 7;
   private List<StackSpot> _stackSpots = [];
@@ -19,11 +20,14 @@ public partial class Game : Control {
   public override void _Ready() {
     _table = GetNode("%Table");
     _deck = (Deck)GetNode("%Deck");
+    _gameTimer = (Timer)GetNode("%GameTimer");
   }
 
   public override void _Process(double delta) {
-    var fpsCounter = (Label)GetNode("FPSLabel");
-    fpsCounter.Text = "FPS: " + Engine.GetFramesPerSecond();
+    var fpLabel = (Label)GetNode("FPSLabel");
+    fpLabel.Text = "FPS: " + Engine.GetFramesPerSecond();
+    var gameTimerLabel = (Label)GetNode("GameTimerLabel");
+    gameTimerLabel.Text = "Time Left: " + (int)_gameTimer.TimeLeft;
   }
 
   public static Node GetTable() => _table;
@@ -50,7 +54,23 @@ public partial class Game : Control {
     }
   }
 
+  private void StartGameTimer() {
+    _gameTimer.Start();
+  }
+
   private void OnSetupGameClick() {
     SetupGameBoard();
+    StartGameTimer();
+  }
+
+  private void OnGameTimerTimeout() {
+    EndGame();
+  }
+
+  private void EndGame() {
+    foreach (var card in _deck.GetCards()) {
+      card.SetDraggable(false);
+      card.PingBack();
+    }
   }
 }
