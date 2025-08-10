@@ -6,8 +6,6 @@ using System.Linq;
 using Godot;
 
 public partial class Game : Control {
-
-
   private static Node _table;
   private static Deck _deck;
   private static Timer _gameTimer;
@@ -27,7 +25,12 @@ public partial class Game : Control {
     var fpLabel = (Label)GetNode("FPSLabel");
     fpLabel.Text = "FPS: " + Engine.GetFramesPerSecond();
     var gameTimerLabel = (Label)GetNode("GameTimerLabel");
-    gameTimerLabel.Text = "Time Left: " + (int)_gameTimer.TimeLeft;
+    if (_gameTimer.IsStopped()) {
+      gameTimerLabel.Text = "Score: " + PointSystem.CalculateScore();
+    }
+    else {
+      gameTimerLabel.Text = "Time Left: " + (int)_gameTimer.TimeLeft;
+    }
   }
 
   public static Node GetTable() => _table;
@@ -70,7 +73,6 @@ public partial class Game : Control {
   private void EndGame() {
     foreach (var card in _deck.GetCards()) {
       card.SetDraggable(false);
-      card.PingBack();
     }
   }
 }

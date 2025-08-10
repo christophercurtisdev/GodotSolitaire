@@ -6,15 +6,16 @@ using CardGame;
 using Godot;
 
 public partial class Card : Node2D, IDraggable {
-
-  private bool _hovered;
   public bool DrawnFromDeck;
+  public int BasePointValue { get; set; }
+  public int MultPointValue { get; set; }
   private AnimatedSprite2D _cardFace = new();
   private Card? _childCard;
   private StackSpot? _stackSpot;
   private Vector2? _previousPosition;
   private bool _flipped;
   private bool _draggable;
+  private bool _hovered;
 
   // Maybe move these to global vars or something
   private static readonly string _pipMeta = "pip";
@@ -162,16 +163,20 @@ public partial class Card : Node2D, IDraggable {
   }
 
   public void FlipCard(bool? value = null) {
-    if (value is not null) {
-      _flipped = (bool)value;
-    }
-    if (_flipped) {
-      ShowFace();
-      _flipped = true;
-    }
-    else {
-      HideFace();
-      _flipped = false;
+    if (value != _flipped) {
+      var tween = GetTree().CreateTween();
+      tween.TweenProperty(_cardFace, "scale", new Vector2(0, Scale.Y), 0.2f);
+      if (value is not null) {
+        _flipped = (bool)value;
+      }
+      if (_flipped) {
+        tween.TweenCallback(Callable.From(ShowFace));
+        _flipped = true;
+      }
+      else {
+        tween.TweenCallback(Callable.From(HideFace));
+        _flipped = false;
+      }
     }
   }
 
@@ -191,11 +196,15 @@ public partial class Card : Node2D, IDraggable {
   }
 
   private void ShowFace() {
+    var tween = GetTree().CreateTween();
+    tween.TweenProperty(_cardFace, "scale", new Vector2(1, Scale.Y), 0.2f);
     var suitNumber = (Suit)Enum.Parse(typeof(Suit), (string)GetMeta(_suitMeta));
     _cardFace.Frame = (int)GetMeta(_pipMeta) + ((int)suitNumber * 13) - 1;
   }
 
   private void HideFace() {
+    var tween = GetTree().CreateTween();
+    tween.TweenProperty(_cardFace, "scale", new Vector2(1, Scale.Y), 0.2f);
     _cardFace.Frame = 52;
   }
 
